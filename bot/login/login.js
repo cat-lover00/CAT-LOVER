@@ -235,49 +235,18 @@ let changeFbStateByCode = false;
 let latestChangeContentAccount = fs.statSync(dirAccount).mtimeMs;
 let dashBoardIsRunning = false;
 
-function randomDelay(min, max) {
-	return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function mimicHumanBehavior() {
-	const userAgents = [
-		'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-		'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15',
-		'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0'
-	];
-	return {
-		userAgent: userAgents[Math.floor(Math.random() * userAgents.length)],
-		delay: randomDelay(1000, 5000)
-	};
-}
 
 async function getAppStateFromEmail(spin = { _start: () => { }, _stop: () => { } }, facebookAccount) {
 	const { email, password, userAgent, proxy } = facebookAccount;
 	const getFbstate = require(process.env.NODE_ENV === 'development' ? "./getFbstate1.dev.js" : "./getFbstate1.js");
 	let code2FATemp;
 	let appState;
-	let maxRetries = 3;
-	let retryCount = 0;
-
-	while (retryCount < maxRetries) {
+	try {
 		try {
 			appState = await getFbstate(checkAndTrimString(email), checkAndTrimString(password), userAgent, proxy);
-			if (appState && Object.keys(appState).length > 0) {
-				spin._stop();
-				return appState;
-			} else {
-				throw new Error('Invalid app state received from Facebook');
-			}
-		} catch (err) {
-			retryCount++;
-			if (retryCount >= maxRetries) {
-				log.error("LOGIN FACEBOOK", `Login failed after ${maxRetries} attempts: ${err.message}`);
-				throw err;
-			}
-
-			log.warn("LOGIN FACEBOOK", `Attempt ${retryCount}/${maxRetries} failed: ${err.message}`);
-			await new Promise(resolve => setTimeout(resolve, 5000 * retryCount)); // Exponential backoff
-
+			spin._stop();
+		}
+		catch (err) {
 			if (err.continue) {
 				let tryNumber = 0;
 				let isExit = false;
@@ -303,7 +272,8 @@ async function getAppStateFromEmail(spin = { _start: () => { }, _stop: () => { }
 								code2FATemp = facebookAccount["2FASecret"];
 								break;
 						}
-					} else {
+					}
+					else {
 						spin._stop();
 						code2FATemp = await input("> Enter 2FA code or secret: ");
 						readline.moveCursor(process.stderr, 0, -1);
@@ -314,22 +284,70 @@ async function getAppStateFromEmail(spin = { _start: () => { }, _stop: () => { }
 						toptp(
 							code2FATemp.normalize("NFD")
 								.toLowerCase()
-								.replace(/[^\w]/g, '')
-						) : code2FATemp;
-
+								.replace(/[\u0300-\u036f]/g, "")
+								.replace(/[đ|Đ]/g, (x) => x == "đ" ? "d" : "D")
+								.replace(/\(|\)|\,/g, "")
+								.replace(/ /g, "")
+						) :
+						code2FATemp;
+					spin._start();
 					try {
-						appState = await getFbstate(checkAndTrimString(email), checkAndTrimString(password), userAgent, proxy, code2FA);
-						if (appState && Object.keys(appState).length > 0) {
-							spin._stop();
-							return appState;
-						}
-					} catch (err2) {
-						throw err2;
+						appState = JSON.parse(JSON.stringify(await err.continue(code2FA)));
+						appState = appState.map(item => ({
+							key: item.key,
+							value: item.value,
+							domain: item.domain,
+							path: item.path,
+							hostOnly: item.hostOnly,
+							creation: item.creation,
+							lastAccessed: item.lastAccessed
+						})).filter(item => item.key);
+						spin._stop();
+					}
+					catch (err) {
+						tryNumber++;
+						if (!err.continue)
+							isExit = true;
+						await submitCode(err.message);
 					}
 				})(err.message);
 			}
+			else
+				throw err;
 		}
 	}
+	catch (err) {
+		const loginMbasic = require(process.env.NODE_ENV === 'development' ? "./loginMbasic.dev.js" : "./loginMbasic.js");
+		if (facebookAccount["2FASecret"]) {
+			switch (['.png', '.jpg', '.jpeg'].some(i => facebookAccount["2FASecret"].endsWith(i))) {
+				case true:
+					code2FATemp = (await qr.readQrCode(`${process.cwd()}/${facebookAccount["2FASecret"]}`)).replace(/.*secret=(.*)&digits.*/g, '$1');
+					break;
+				case false:
+					code2FATemp = facebookAccount["2FASecret"];
+					break;
+			}
+		}
+
+		appState = await loginMbasic({
+			email,
+			pass: password,
+			twoFactorSecretOrCode: code2FATemp,
+			userAgent,
+			proxy
+		});
+
+		appState = appState.map(item => {
+			item.key = item.name;
+			delete item.name;
+			return item;
+		});
+		appState = filterKeysAppState(appState);
+	}
+
+	global.GoatBot.config.facebookAccount['2FASecret'] = code2FATemp || "";
+	writeFileSync(global.client.dirConfig, JSON.stringify(global.GoatBot.config, null, 2));
+	return appState;
 }
 
 function isNetScapeCookie(cookie) {
@@ -643,8 +661,7 @@ async function startBot(loginWithEmail) {
 
 		let isSendNotiErrorMessage = false;
 
-		const behavior = mimicHumanBehavior();
-		login({ appState }, { ...global.GoatBot.config.optionsFca, userAgent: behavior.userAgent }, async function (error, api) {
+		login({ appState }, global.GoatBot.config.optionsFca, async function (error, api) {
 			if (!isNaN(facebookAccount.intervalGetNewCookie) && facebookAccount.intervalGetNewCookie > 0)
 				if (facebookAccount.email && facebookAccount.password) {
 					spin?._stop();
