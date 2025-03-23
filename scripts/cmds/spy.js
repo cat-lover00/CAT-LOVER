@@ -1,18 +1,10 @@
-const axios = require("axios");
-const baseApiUrl = async () => {
-  const base = await axios.get(
-    `https://raw.githubusercontent.com/Blankid018/D1PT0/main/baseApiUrl.json`,
-  );
-  return base.data.api;
-};
-
 module.exports = {
   config: {
     name: "spy",
     aliases: ["spy", "myself", "whoami", "myinfo"],
     version: "1.0",
     role: 0,
-    author: "Dipto",
+    author: "MM-RIFAT",
     Description: "Get user information and profile photo",
     category: "information",
     countDown: 10,
@@ -30,6 +22,7 @@ module.exports = {
     const uid2 = Object.keys(event.mentions)[0];
     let uid;
 
+    // Check if the user passed an argument to specify a different user
     if (args[0]) {
       if (/^\d+$/.test(args[0])) {
         uid = args[0];
@@ -41,22 +34,15 @@ module.exports = {
       }
     }
 
+    // If no user ID is provided, use the message sender's ID or the mentioned user's ID
     if (!uid) {
       uid =
         event.type === "message_reply"
           ? event.messageReply.senderID
           : uid2 || uid1;
     }
-    const response = await require("axios").get(
-      `${await baseApiUrl()}/baby?list=all`
-    );
-    const dataa = response.data || { teacher: { teacherList: [] } };
-    let babyTeach = 0;
 
-    if (dataa?.teacher?.teacherList?.length) {
-      babyTeach = dataa.teacher.teacherList.find((t) => t[uid])?.[uid] || 0;
-    }
-
+    // Get user information from the internal usersData system
     const userInfo = await api.getUserInfo(uid);
     const avatarUrl = await usersData.getAvatarUrl(uid);
 
@@ -72,11 +58,15 @@ module.exports = {
         genderText = "𝙶𝚊𝚢🤷🏻‍♂️";
     }
 
+    // Get money and rank from the usersData system
     const money = (await usersData.get(uid)).money;
-    const allUser = await usersData.getAll(), rank = allUser.slice().sort((a, b) => b.exp - a.exp).findIndex(user => user.userID === uid) + 1, moneyRank = allUser.slice().sort((a, b) => b.money - a.money).findIndex(user => user.userID === uid) + 1;
+    const allUser = await usersData.getAll(), 
+          rank = allUser.slice().sort((a, b) => b.exp - a.exp).findIndex(user => user.userID === uid) + 1, 
+          moneyRank = allUser.slice().sort((a, b) => b.money - a.money).findIndex(user => user.userID === uid) + 1;
 
     const position = userInfo[uid].type;
 
+    // Format the user information for display
     const userInformation = `
 ╭────[ 𝐔𝐒𝐄𝐑 𝐈𝐍𝐅𝐎 ]
 ├‣ 𝙽𝚊𝚖𝚎: ${userInfo[uid].name}
@@ -93,8 +83,9 @@ module.exports = {
 ├‣ 𝙼𝚘𝚗𝚎𝚢: $${formatMoney(money)}
 ├‣ 𝚁𝚊𝚗𝚔: #${rank}/${allUser.length}
 ├‣ 𝙼𝚘𝚗𝚎𝚢 𝚁𝚊𝚗𝚔: #${moneyRank}/${allUser.length}
-╰‣ 𝙱𝚊𝚋𝚢 𝚝𝚎𝚊𝚌𝚑: ${babyTeach || 0}`;
+★ Api Owner : Mueid Mursalin Rifat`;
 
+    // Reply with the user information and avatar image
     message.reply({
       body: userInformation,
       attachment: await global.utils.getStreamFromURL(avatarUrl),
@@ -102,6 +93,7 @@ module.exports = {
   },
 };
 
+// Utility function to format money values
 function formatMoney(num) {
   const units = ["", "K", "M", "B", "T", "Q", "Qi", "Sx", "Sp", "Oc", "N", "D"];
   let unit = 0;

@@ -3,7 +3,7 @@ const moment = require('moment-timezone');
 module.exports = {
 	config: {
 		name: "admininfo",
-		aliases: ["ownerinfo","admininfo","botowner"],
+		aliases: ["ownerinfo","admininfo","botinfo"],
 		version: "1.0",
 		author: "Rifat",
 		countDown: 10,
@@ -18,7 +18,7 @@ module.exports = {
 	onStart: async function ({ message }) {
 		try {
 			// Bot & Owner Information
-			const botName = "Rifat-V2";
+			const botName = "CAT😺💖";
 			const botPrefix = "/";
 			const authorName = "𝘔𝘶𝘦𝘪𝘥 𝘔𝘶𝘳𝘴𝘢𝘭𝘪𝘯 𝘙𝘪𝘧𝘢𝘵";
 			const ownAge = "18";
@@ -61,7 +61,7 @@ module.exports = {
 	},
 
 	onChat: async function ({ event, message }) {
-		if (event.body && event.body.toLowerCase() === "ownerinfo") {
+		if (event.body && event.body.toLowerCase() === "bot") {
 			this.onStart({ message });
 		}
 	}
