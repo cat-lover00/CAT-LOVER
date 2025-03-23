@@ -1,8 +1,7 @@
-fs = require("fs-extra");
+const fs = require("fs-extra");
 const path = require("path");
 const { getPrefix } = global.utils;
 const { commands, aliases } = global.GoatBot;
-const doNotDelete = "[ 𝙍𝙄𝙁𝘼𝙏 ]"; 
 
 module.exports = {
   config: {
@@ -48,9 +47,11 @@ module.exports = {
           msg += `\n╭─────✰『  ${category.toUpperCase()}  』`;
 
           const names = categories[category].commands.sort();
-          for (let i = 0; i < names.length; i += 3) {
-            const cmds = names.slice(i, i + 2).map((item) => `⭔${item}`);
-            msg += `\n│${cmds.join(" ".repeat(Math.max(1, 5 - cmds.join("").length)))}`;
+          
+          // Create a side-by-side view of commands (4 per line)
+          for (let i = 0; i < names.length; i += 4) {
+            const cmds = names.slice(i, i + 4).map((item) => `⭔${item}`).join(" - ");
+            msg += `\n│${cmds}`;
           }
 
           msg += `\n╰────────────✰`;
