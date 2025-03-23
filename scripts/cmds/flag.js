@@ -1,9 +1,14 @@
 const axios = require("axios");
-const baseApiUrl = async () => {
-  const base = await axios.get(
-    `https://raw.githubusercontent.com/Blankid018/D1PT0/main/baseApiUrl.json`,
-  );
-  return base.data.api;
+
+// Function to get a random country and its flag from the Restcountries API
+const getRandomCountry = async () => {
+  const response = await axios.get("https://restcountries.com/v3.1/all");
+  const countries = response.data;
+  const randomCountry = countries[Math.floor(Math.random() * countries.length)];
+  return {
+    country: randomCountry.name.common,
+    flag: randomCountry.flags[0],
+  };
 };
 
 module.exports = {
@@ -11,7 +16,7 @@ module.exports = {
     name: "flag",
     aliases: ["flagGame"],
     version: "3.0",
-    author: "Dipto",
+    author: "MM-RIFAT",
     countDown: 0,
     role: 0,
     description: {
@@ -22,7 +27,8 @@ module.exports = {
       en: "{pn}",
     },
   },
-  onReply: async function ({ api, event, Reply, usersData , threadsData }) {
+
+  onReply: async function ({ api, event, Reply, usersData, threadsData }) {
     const { country, attempts } = Reply;
     const maxAttempts = 5;
     if (event.type == "message_reply") {
@@ -76,17 +82,14 @@ module.exports = {
     }
   },
 
-  onStart: async function ({ api, args, event,threadsData }) {
+  onStart: async function ({ api, args, event, threadsData }) {
     try {
       if (!args[0]) {
-        const response = await axios.get(
-          `${await baseApiUrl()}/flagGame?randomFlag=random`,
-        );
-        const { link, country } = response.data;
+        const { country, flag } = await getRandomCountry(); // Fetch random country and its flag
         await api.sendMessage(
           {
             body: "Guess this flag name.",
-            attachment: await global.utils.getStreamFromURL(link),
+            attachment: await global.utils.getStreamFromURL(flag),
           },
           event.threadID,
           (error, info) => {
@@ -95,14 +98,14 @@ module.exports = {
               type: "reply",
               messageID: info.messageID,
               author: event.senderID,
-              link,
               country,
+              flag,
               attempts: 0,
             });
           },
           event.messageID,
         );
-      }else if (args[0] === "list") {
+      } else if (args[0] === "list") {
         const threadData = await threadsData.get(event.threadID);
         const { data } = threadData;
         const flagWins = data.flagWins || {};
