@@ -1,6 +1,7 @@
 module.exports = {
 	config: {
 		name: "supportgc",
+		aliases: ["support","sgc"],
 		version: "1.0",
 		author: "Rifat",
 		countDown: 5,
@@ -19,7 +20,7 @@ module.exports = {
 
 	// onStart is a function that will be executed when the command is executed
 	onStart: async function ({ api, args, message, event }) {
-		const supportGroupId = "6679378595448995"; // ID of the support group
+		const supportGroupId = "9900035400016366"; // ID of the support group
 
 		const threadID = event.threadID;
 		const userID = event.senderID;
