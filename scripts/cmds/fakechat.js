@@ -7,7 +7,7 @@ module.exports = {
     premium: true,
     author: "Dipto",
     Description: "Get a fake chat of user",
-    category: "IMAGE",
+    category: "image",
     countDown: 10,
   },
   onStart: async ({ event, message, usersData, api, args }) => {
