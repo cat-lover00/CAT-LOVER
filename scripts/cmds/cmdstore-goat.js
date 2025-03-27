@@ -5,7 +5,7 @@ const ITEMS_PER_PAGE = 10;
 
 module.exports.config = {
   name: "cmdstore",
-  aliases: ["cs", "cmds"],
+  aliases: ["cs2", "cmds"],
   author: "Dipto",
   role: 2,
   version: "6.9",
