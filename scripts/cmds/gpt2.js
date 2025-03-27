@@ -2,7 +2,7 @@ const axios = require("axios");
 
 module.exports = {
 	config: {
-		name: "gpt",
+		name: "gpt2",
 		version: "1.2",
 		author: "MM-RIFAT",
 		countDown: 5,
