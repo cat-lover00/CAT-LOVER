@@ -6,7 +6,7 @@ const { commands, aliases } = global.GoatBot;
 module.exports = {
   config: {
     name: "help",
-    version: "1.0",
+    version: "1.2",
     author: "Rifat",
     countDown: 5,
     role: 0,
@@ -30,9 +30,9 @@ module.exports = {
 
     if (args.length === 0) {
       const categories = {};
-      let msg = "╭───────❁";
+      let msg = "╭─────────💎";
 
-      msg += `\n│𝙍𝙄𝙁𝘼𝙏 𝗛𝗘𝗟𝗣 𝗟𝗜𝗦𝗧\n╰────────────❁`; 
+      msg += `\n│ 𝗥𝗜𝗙𝗔𝗧 𝗛𝗘𝗟𝗣 𝗟𝗜𝗦𝗧 ✨\n╰────────────💎`; 
 
       for (const [name, value] of commands) {
         if (value.config.role > 1 && role < value.config.role) continue;
@@ -44,24 +44,24 @@ module.exports = {
 
       Object.keys(categories).forEach((category) => {
         if (category !== "info") {
-          msg += `\n╭─────✰『  ${category.toUpperCase()}  』`;
+          msg += `\n╭─────💫『 ${category.toUpperCase()} 』`;
 
           const names = categories[category].commands.sort();
           
-          // Create a side-by-side view of commands (4 per line)
+          // Create a side-by-side view of commands (4 per line) with ✨
           for (let i = 0; i < names.length; i += 4) {
-            const cmds = names.slice(i, i + 4).map((item) => `⭔${item}`).join(" ★ ");
-            msg += `\n│${cmds}`;
+            const cmds = names.slice(i, i + 4).map((item) => `⭑ ${item}`).join(" ✨ ");
+            msg += `\n│ ${cmds}`;
           }
 
-          msg += `\n╰────────────✰`;
+          msg += `\n╰────────────💫`;
         }
       });
 
       const totalCommands = commands.size;
-      msg += `\n\n╭─────✰[𝗘𝗡𝗝𝗢𝗬]\n│>𝗧𝗢𝗧𝗔𝗟 𝗖𝗠𝗗𝗦: [${totalCommands}].\n│𝗧𝗬𝗣𝗘𝖳:[ ${prefix}𝗛𝗘𝗟𝗣 𝗧𝗢\n│<𝗖𝗠𝗗> 𝗧𝗢 𝗟𝗘𝗔𝗥𝗡 𝗧𝗛𝗘 𝗨𝗦𝗔𝗚𝗘.]\n╰────────────✰`;
+      msg += `\n\n╭─────💫[𝗘𝗡𝗝𝗢𝗬]\n│ Total Commands: [${totalCommands}].\n│ Type [${prefix}help <cmdName>] for Usage.\n╰────────────💫`;
       msg += ``;
-      msg += `\n╭─────✰\n│ ♥︎╣꧁𝙍𝙄𝙁𝘼𝙏꧂╠♥︎\n╰────────────✰`; 
+      msg += `\n╭─────💖\n│ 💻 Developed with Love by 𝙍𝙄𝙁𝘼𝙏 💖\n╰────────────💖`; 
 
       await message.reply({ body: msg });
     } else {
@@ -69,7 +69,7 @@ module.exports = {
       const command = commands.get(commandName) || commands.get(aliases.get(commandName));
 
       if (!command) {
-        await message.reply(`Command "${commandName}" not found.`);
+        await message.reply(`🚫 𝗖𝗼𝗺𝗺𝗮𝗻𝗱 "${commandName}" 𝗻𝗼𝘁 𝗳𝗼𝘂𝗻𝗱!`);
       } else {
         const configCommand = command.config;
         const roleText = roleTextToString(configCommand.role);
@@ -81,16 +81,16 @@ module.exports = {
         const usage = guideBody.replace(/{p}/g, prefix).replace(/{n}/g, configCommand.name);
 
         const response = `
-  ╭───⊙
-  │ ✅ ${configCommand.name}
-  ├── INFO
-  │ 📝 𝗗𝗲𝘀𝗰𝗿𝗶𝗽𝘁𝗶𝗼𝗻: ${longDescription}
-  │ 👑 𝗔𝘂𝘁𝗵𝗼𝗿: ${author}
-  │ ▶️ 𝗚𝘂𝗶𝗱𝗲: ${usage}
-  ├── USAGE
-  │ ☢️ 𝗩𝗲𝗿𝘀𝗶𝗼𝗻: ${configCommand.version || "1.0"}
-  │ ♻ 𝗥𝗼𝗹𝗲: ${roleText}
-  ╰────────────⊙`;
+  ╭───🌟
+  │ ✅ **${configCommand.name}** Command
+  ├── **INFO**
+  │ 📝 **Description**: ${longDescription}
+  │ 👑 **Author**: ${author}
+  │ ▶️ **Guide**: ${usage}
+  ├── **USAGE**
+  │ ☢️ **Version**: ${configCommand.version || "1.0"}
+  │ ♻ **Role**: ${roleText}
+  ╰────────────🌟`;
 
         await message.reply(response);
       }
